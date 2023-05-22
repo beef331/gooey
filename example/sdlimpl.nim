@@ -41,6 +41,8 @@ type
   Slider[T] = ref object of HorizontalSliderBase[Element, T]
     slideBar: Element
 
+  HGroup[T] = ref object of HorizontalGroupBase[Element, T]
+
   FontProps = object
     size: Vec2
     text: string
@@ -58,7 +60,7 @@ type
 var
   fontTextureCache: Table[FontProps, Texture]
   refCount: CountTable[Texture]
-  defaultFont = readFont"./example/Hdright-8Xr2.ttf"
+  defaultFont = readFont"./example/SimplySans-Bold.ttf"
 
 proc makeTexture(s: string, size: Vec2, renderer: Renderer): Texture =
   let props = FontProps(size: size, text: s)
@@ -128,7 +130,7 @@ proc layout(button: Button, parent: Element, offset, screenSize: Vec3) =
   buttons.layout(button, parent, offset, screenSize)
   if button.label != nil:
     button.label.size = button.size
-    button.label.layout(button, offset, screenSize)
+    button.label.layout(button, (0f, 0f, 0f), screenSize)
 
 proc onEnter(button: Button, uiState: var UiState) =
   button.flags.incl {hovered}
@@ -165,6 +167,18 @@ proc onDrag(slider: Slider, uiState: var UiState) = sliders.onDrag(slider, uiSta
 
 proc onExit(slider: Slider, uiState: var UiState) = slider.flags.excl {hovered}
 
+# HGroup
+
+proc interact[T](group: HGroup[T], uiState: var UiState) =
+  groups.interact(group, uiState)
+
+proc layout[T](group: HGroup[T], parent: Element, offset, screenSize: Vec3) =
+  groups.layout(group, parent, offset, screenSize)
+
+proc upload[T](hgroup: HGroup[T], state: UiState, target: var RenderTarget) =
+  groups.upload(hGroup, state, target)
+
+
 proc inputLoop(app: App) =
   var e: Event
   if app.leftPressed:
@@ -189,8 +203,6 @@ proc inputLoop(app: App) =
 
     else: discard
 
-
-
 proc makeGui(app: App): auto =
   (
     Button(
@@ -212,7 +224,20 @@ proc makeGui(app: App): auto =
       onChange: proc(f: float32) =
         myLabel.size.y = f * 50
         myLabel.size.x = f * 100
-    )
+    ),
+    HGroup[(Label, Button)](
+      pos: (10, 10, 0),
+      anchor: {top, right},
+      entries: (
+        Label(text: "Test:", size: (100, 50)),
+        Button(
+          size: (100, 50),
+          color: (99, 64, 99, 255),
+          hoveredColor: (188, 124, 188, 255),
+          label: Label(text: "Really!", color: (0, 35, 127, 255)))
+        )
+
+      )
   )
 
 proc main() =

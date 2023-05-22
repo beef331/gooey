@@ -12,16 +12,16 @@ proc usedSize*[Base, T](horz: HorizontalGroupBase[Base, T]): Vec2 =
   result = typeof(horz.size).init(float32(tupleLen(T) - 1) * horz.margin, 0f)
   for field in horz.entries.fields:
     let size = usedSize(field)
-    result.x = size.x
+    result.x += size.x
     result.y = max(size.y, result.y)
 
 proc layout*[Base, T](horz: HorizontalGroupBase[Base, T], parent: Base, offset, screenSize: Vec3) =
   mixin layout
   horz.size = usedSize(horz)
-  Base(horz).layout(parent, offset, screenSize)
+  Base(horz).layout(Base parent, offset, screenSize)
   var offset = typeof(offset).init(0, 0, 0)
   for field in horz.entries.fields:
-    field.layout(horz, offset, screenSize)
+    field.layout(Base(horz), offset, screenSize)
     offset.x += horz.margin + field.size.x
 
 proc interact*[Base, T](horz: HorizontalGroupBase[Base, T], state: var UiState) =
