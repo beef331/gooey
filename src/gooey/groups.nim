@@ -1,4 +1,4 @@
-import gooey, mathtypes
+import gooey, mathtypes, iteratorstuff
 import std/typetraits
 
 type
@@ -27,9 +27,14 @@ proc layout*[Base, T](horz: HorizontalGroupBase[Base, T], parent: Base, offset: 
   horz.size = usedSize(horz)
   Base(horz).layout(Base parent, offset, state)
   var offset = typeof(offset).init(0, 0, 0)
-  for field in horz.entries.fields:
-    field.layout(Base(horz), offset, state)
-    offset.x += horz.margin * state.scaling + field.layoutSize.x
+  if horz.rightToLeft:
+    applyItBackwards(horz.entries):
+      it.layout(Base(horz), offset, state)
+      offset.x += horz.margin * state.scaling + it.layoutSize.x
+  else:
+    for field in horz.entries.fields:
+      field.layout(Base(horz), offset, state)
+      offset.x += horz.margin * state.scaling + field.layoutSize.x
 
 proc usedSize*[Base, T](vert: VerticalGroupBase[Base, T]): Vec2 =
   mixin usedSize
@@ -44,9 +49,14 @@ proc layout*[Base, T](vert: VerticalGroupBase[Base, T], parent: Base, offset: Ve
   vert.size = usedSize(vert)
   Base(vert).layout(Base parent, offset, state)
   var offset = typeof(offset).init(0, 0, 0)
-  for field in vert.entries.fields:
-    field.layout(Base(vert), offset, state)
-    offset.y += vert.margin * state.scaling + field.layoutSize.y
+  if vert.bottomToTop:
+    applyItBackwards(vert.entries):
+      it.layout(Base(vert), offset, state)
+      offset.y += vert.margin * state.scaling + it.layoutSize.y
+  else:
+    for field in vert.entries.fields:
+      field.layout(Base(vert), offset, state)
+      offset.y += vert.margin * state.scaling + field.layoutSize.y
 
 proc interact*[Base, T](group: Group[Base, T], state: var UiState) =
   mixin interact

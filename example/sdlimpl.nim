@@ -62,7 +62,7 @@ type
 
 var
   fontTextureCache: Table[FontProps, Texture]
-  refCount: CountTable[Texture]
+  refCount: Table[Texture, int]
   defaultFont = readFont"./example/SimplySans-Bold.ttf"
 
 proc makeTexture(s: string, size: Vec2, renderer: Renderer): Texture =
@@ -108,19 +108,20 @@ proc upload(element: Element, state: UiState, target: var RenderTarget) =
     discard target.renderer.renderCopy(element.texture, nil, addr rect)
 
 proc upload(label: Label, state: UiState, target: var RenderTarget) =
-  let orig = label.texture
   if 0 notin [label.layoutSize.x, label.layoutSize.y]:
+    let orig = label.texture
     label.texture = makeTexture(label.text, label.layoutSize, target.renderer)
-    if orig != nil and label.texture != orig:
-      refCount[orig] = max(refCount[orig] - 1, 0)
-      if refCount[orig] == 1:
-        refCount.del(orig)
-        for x, y in fontTextureCache:
-          if y == orig:
-            fontTextureCache.del(x)
-            break
-      refCount.inc(label.texture)
-      orig.destroyTexture()
+    if label.texture != orig:
+      if orig != nil:
+        dec refCount[orig]
+        if refCount[orig] == 0:
+          refCount.del(orig)
+          for x, y in fontTextureCache:
+            if y == orig:
+              fontTextureCache.del(x)
+              break
+          orig.destroyTexture()
+      inc refCount[label.texture]
 
   Element(label).upload(state, target)
 
@@ -246,9 +247,31 @@ proc makeGui(app: App): auto =
           label: Label(text: "Really!", color: (0, 35, 127, 255)))
         )
     ),
+    HGroup[(Label, Button)](
+      pos: (10, 80, 0),
+      anchor: {top, right},
+      rightToLeft: true,
+      entries: (
+        Label(text: "Test:", size: (100, 50)),
+        Button(
+          size: (100, 50),
+          color: (99, 64, 99, 255),
+          hoveredColor: (188, 124, 188, 255),
+          label: Label(text: "Really!", color: (0, 35, 127, 255)))
+        )
+    ),
     VGroup[(Label, Label)](
       pos: (0, 10, 0),
       anchor: {bottom},
+      entries: (
+        Label(text: "Hmm:", size: (100, 50)),
+        Label(text: "Yes!", size: (100, 50)),
+      )
+    ),
+    VGroup[(Label, Label)](
+      pos: (0, 100, 0),
+      anchor: {bottom},
+      bottomToTop: true,
       entries: (
         Label(text: "Hmm:", size: (100, 50)),
         Label(text: "Yes!", size: (100, 50)),
