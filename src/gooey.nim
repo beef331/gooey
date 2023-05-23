@@ -97,7 +97,7 @@ proc layout*[S, P](ui: UiElement[S, P], parent: UiElement[S, P], offset, screenS
     elif ui.anchor == {bottom}:
       P.init(screenSize.x / 2 - ui.pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
     elif ui.anchor == {bottom, left}:
-      P.init(ui.pos.x + offset.x, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+      P.init(ui.pos.x + offset.x, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {left}:
       P.init(ui.pos.x + offset.x, screenSize.y / 2 - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
     elif ui.anchor == {center}:
