@@ -39,6 +39,7 @@ proc layout*[Base, T](horz: HorizontalGroupBase[Base, T], parent: Base, offset: 
 proc usedSize*[Base, T](vert: VerticalGroupBase[Base, T]): Vec2 =
   mixin usedSize
   result = typeof(vert.size).init(0f, float32(tupleLen(T) - 1) * vert.margin)
+  result.y = (tupleLen(T) - 1) * vert.margin
   for field in vert.entries.fields:
     let size = usedSize(field)
     result.x = max(size.x, result.x)
