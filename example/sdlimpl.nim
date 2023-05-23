@@ -45,6 +45,12 @@ type
 
   HGroup[T] = ref object of HorizontalGroupBase[Element, T]
   VGroup[T] = ref object of VerticalGroupBase[Element, T]
+
+  HLayout[T] = ref object of HorizontalLayoutBase[Element, T]
+  VLayout[T] = ref object of VerticalLayoutBase[Element, T]
+
+  Layouts[T] = HLayout[T] or VLayout[T]
+
   Groups[T] = HGroup[T] or VGroup[T]
 
   FontProps = object
