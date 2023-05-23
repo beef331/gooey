@@ -42,6 +42,8 @@ type
     slideBar: Element
 
   HGroup[T] = ref object of HorizontalGroupBase[Element, T]
+  VGroup[T] = ref object of VerticalGroupBase[Element, T]
+  Groups[T] = HGroup[T] or VGroup[T]
 
   FontProps = object
     size: Vec2
@@ -167,17 +169,16 @@ proc onDrag(slider: Slider, uiState: var UiState) = sliders.onDrag(slider, uiSta
 
 proc onExit(slider: Slider, uiState: var UiState) = slider.flags.excl {hovered}
 
-# HGroup
+# Groups
 
-proc interact[T](group: HGroup[T], uiState: var UiState) =
+proc interact[T](group: Groups[T], uiState: var UiState) =
   groups.interact(group, uiState)
 
-proc layout[T](group: HGroup[T], parent: Element, offset, screenSize: Vec3) =
+proc layout[T](group: Groups[T], parent: Element, offset, screenSize: Vec3) =
   groups.layout(group, parent, offset, screenSize)
 
-proc upload[T](hgroup: HGroup[T], state: UiState, target: var RenderTarget) =
-  groups.upload(hGroup, state, target)
-
+proc upload[T](group: Groups[T], state: UiState, target: var RenderTarget) =
+  groups.upload(group, state, target)
 
 proc inputLoop(app: App) =
   var e: Event
@@ -236,8 +237,39 @@ proc makeGui(app: App): auto =
           hoveredColor: (188, 124, 188, 255),
           label: Label(text: "Really!", color: (0, 35, 127, 255)))
         )
-
+    ),
+    VGroup[(Label, Label)](
+      pos: (0, 10, 0),
+      anchor: {bottom},
+      entries: (
+        Label(text: "Hmm:", size: (100, 50)),
+        Label(text: "Yes!", size: (100, 50)),
       )
+    ),
+    Label(
+      anchor: {left},
+      color: (0, 255, 0, 255),
+      text: "Eh?!",
+      size: (100, 50)
+    ),
+    Label(
+      anchor: {right},
+      color: (255, 0, 0, 255),
+      text: "Eh?!",
+      size: (100, 50)
+    ),
+    Label(
+      anchor: {top},
+      color: (255, 0, 255, 255),
+      text: "Eh?!",
+      size: (100, 50)
+    ),
+    Label(
+      anchor: {center},
+      color: (127, 255, 255, 255),
+      text: "Eh?!",
+      size: (100, 50)
+    ),
   )
 
 proc main() =

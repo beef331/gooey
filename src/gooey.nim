@@ -5,7 +5,7 @@ type
     horizontal, vertical
 
   AnchorDirection* = enum
-    left, right, top, bottom
+    left, right, top, bottom, center
 
   UiFlag* = enum
     onlyVisual
@@ -83,21 +83,29 @@ proc layout*[S, P](ui: UiElement[S, P], parent: UiElement[S, P], offset, screenS
 
   ui.layoutSize = ui.size
 
-  if bottom in ui.anchor:
-    ui.layoutPos.y = screenSize.y - ui.layoutSize.y - ui.pos.y + offset.y
-  elif top in ui.anchor:
-    ui.layoutPos.y = ui.pos.y + offset.y
-
-  if right in ui.anchor:
-    ui.layoutPos.x = screenSize.x - ui.layoutSize.x - ui.pos.x + offset.x
-
-  elif left in ui.anchor:
-    ui.layoutPos.x = ui.pos.x + offset.x
-
-
-  if ui.anchor == {}:
-    ui.layoutPos = ui.pos + offset
-
+  ui.layoutPos =
+    if ui.anchor == {top, left}:
+      P.init(ui.pos.x + offset.x, ui.pos.y + offset.y, 0)
+    elif ui.anchor == {top}:
+      P.init(screenSize.x / 2 - ui.pos.x + offset.x - ui.layoutSize.x / 2, ui.pos.y + offset.y, 0)
+    elif ui.anchor == {top, right}:
+      P.init(screenSize.x - ui.pos.x + offset.x - ui.layoutSize.x, ui.pos.y + offset.y, 0)
+    elif ui.anchor == {right}:
+      P.init(screenSize.x - ui.pos.x + offset.x - ui.layoutSize.x, screenSize.y / 2 - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+    elif ui.anchor == {bottom, right}:
+      P.init(screenSize.x - ui.pos.x + offset.x - ui.layoutSize.x, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y, 0)
+    elif ui.anchor == {bottom}:
+      P.init(screenSize.x / 2 - ui.pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+    elif ui.anchor == {bottom, left}:
+      P.init(ui.pos.x + offset.x, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+    elif ui.anchor == {left}:
+      P.init(ui.pos.x + offset.x, screenSize.y / 2 - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+    elif ui.anchor == {center}:
+      P.init(screenSize.x / 2 - ui.pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y / 2 - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+    elif ui.anchor == {}:
+      ui.pos + offset
+    else:
+      raise (ref AssertionDefect)(msg: "Invalid anchor: " & $ui.anchor)
 
 proc layout*[T: UiElements; Y: UiElement](ui: T, parent: Y, offset, screenSize: Vec3) =
   mixin layout
