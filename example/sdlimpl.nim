@@ -200,8 +200,13 @@ proc inputLoop(app: App) =
     of WindowEvent:
       case e.window.event.WindowEventID
       of WindowEventSizeChanged, WindowEventResized:
-        app.uiState.screenSize = (float32 e.window.data1, float32 e.window.data2)
-        app.uiState.scaling = 1
+        let
+          x = float32 e.window.data1
+          y = float32(9 / 16 * x)
+        app.uiState.screenSize = (x, y)
+        app.window.setWindowSize(cint x, cint y)
+        app.uiState.scaling = x / 1280
+
       else:
         discard
 
