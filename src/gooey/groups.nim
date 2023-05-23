@@ -14,34 +14,34 @@ type
 
   Group[Base, T] = VerticalGroupBase[Base, T] or HorizontalGroupBase[Base, T]
 
-proc usedSize*[Base, T](horz: HorizontalGroupBase[Base, T], scaling: float32): Vec2 =
+proc usedSize*[Base, T](horz: HorizontalGroupBase[Base, T]): Vec2 =
   mixin usedSize
-  result = typeof(horz.size).init(float32(tupleLen(T) - 1) * horz.margin * scaling, 0f)
+  result = typeof(horz.size).init(float32(tupleLen(T) - 1) * horz.margin, 0f)
   for field in horz.entries.fields:
-    let size = usedSize(field, scaling)
+    let size = usedSize(field)
     result.x += size.x
     result.y = max(size.y, result.y)
 
 proc layout*[Base, T](horz: HorizontalGroupBase[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
-  horz.size = usedSize(horz, state.scaling)
+  horz.size = usedSize(horz)
   Base(horz).layout(Base parent, offset, state)
   var offset = typeof(offset).init(0, 0, 0)
   for field in horz.entries.fields:
     field.layout(Base(horz), offset, state)
     offset.x += horz.margin * state.scaling + field.layoutSize.x
 
-proc usedSize*[Base, T](vert: VerticalGroupBase[Base, T], scaling: float32): Vec2 =
+proc usedSize*[Base, T](vert: VerticalGroupBase[Base, T]): Vec2 =
   mixin usedSize
-  result = typeof(vert.size).init(0f, float32(tupleLen(T) - 1) * vert.margin * scaling)
+  result = typeof(vert.size).init(0f, float32(tupleLen(T) - 1) * vert.margin)
   for field in vert.entries.fields:
-    let size = usedSize(field, scaling)
+    let size = usedSize(field)
     result.x = max(size.x, result.x)
-    result.y += size.x
+    result.y += size.y
 
 proc layout*[Base, T](vert: VerticalGroupBase[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
-  vert.size = usedSize(vert, state.scaling)
+  vert.size = usedSize(vert)
   Base(vert).layout(Base parent, offset, state)
   var offset = typeof(offset).init(0, 0, 0)
   for field in vert.entries.fields:

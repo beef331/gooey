@@ -73,20 +73,21 @@ proc isOver[S, P](ui: UiElement[S, P], pos: Vec2): bool =
   pos.x in ui.layoutPos.x .. ui.layoutSize.x + ui.layoutPos.x and
   pos.y in ui.layoutPos.y .. ui.layoutSize.y + ui.layoutPos.y
 
-proc usedSize*[T: Element](ui: T, scaling: float32): auto = typeof(ui.size).init(ui.size.x * scaling, ui.size.y * scaling)
+proc usedSize*[T: Element](ui: T): auto = ui.size
 
 
 proc layout*[S, P](ui: UiElement[S, P], parent: UiElement[S, P], offset: P,  uiState: UiState) =
   let
     screenSize = uiState.screenSize
+    scaling = uiState.scaling
     offset =
       if parent != nil:
         parent.layoutPos + offset
       else:
         offset
-    pos = P.init(ui.pos.x * uiState.scaling, ui.pos.y * uiState.scaling, ui.pos.z)
+    pos = P.init(ui.pos.x * scaling, ui.pos.y * scaling, ui.pos.z)
 
-  ui.layoutSize = S.init(ui.size.x * uiState.scaling, ui.size.y * uiState.scaling)
+  ui.layoutSize = S.init(ui.size.x * scaling, ui.size.y * scaling)
 
   ui.layoutPos =
     if ui.anchor == {top, left}:
@@ -100,7 +101,7 @@ proc layout*[S, P](ui: UiElement[S, P], parent: UiElement[S, P], offset: P,  uiS
     elif ui.anchor == {bottom, right}:
       P.init(screenSize.x - pos.x + offset.x - ui.layoutSize.x, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {bottom}:
-      P.init(screenSize.x / 2 - pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y - pos.y + offset.y - ui.layoutSize.y / 2, 0)
+      P.init(screenSize.x / 2 - pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {bottom, left}:
       P.init(pos.x + offset.x, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {left}:
