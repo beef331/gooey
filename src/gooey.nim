@@ -47,6 +47,8 @@ type
     s.currentElement is UiElement[auto, auto]
     s.input is UiInput
     s.inputPos is Vec2
+    s.screenSize is Vec2
+    s.scaling is float32
 
 proc onlyUiElems*(t: typedesc[tuple]): bool =
   var val: t
@@ -71,51 +73,54 @@ proc isOver[S, P](ui: UiElement[S, P], pos: Vec2): bool =
   pos.x in ui.layoutPos.x .. ui.layoutSize.x + ui.layoutPos.x and
   pos.y in ui.layoutPos.y .. ui.layoutSize.y + ui.layoutPos.y
 
-proc usedSize*[T: Element](ui: T): auto = ui.size
+proc usedSize*[T: Element](ui: T, scaling: float32): auto = typeof(ui.size).init(ui.size.x * scaling, ui.size.y * scaling)
 
 
-proc layout*[S, P](ui: UiElement[S, P], parent: UiElement[S, P], offset, screenSize: P) =
-  let offset =
-    if parent != nil:
-      parent.layoutPos + offset
-    else:
-      offset
+proc layout*[S, P](ui: UiElement[S, P], parent: UiElement[S, P], offset: P,  uiState: UiState) =
+  let
+    screenSize = uiState.screenSize
+    offset =
+      if parent != nil:
+        parent.layoutPos + offset
+      else:
+        offset
+    pos = P.init(ui.pos.x * uiState.scaling, ui.pos.y * uiState.scaling, ui.pos.z)
 
-  ui.layoutSize = ui.size
+  ui.layoutSize = S.init(ui.size.x * uiState.scaling, ui.size.y * uiState.scaling)
 
   ui.layoutPos =
     if ui.anchor == {top, left}:
-      P.init(ui.pos.x + offset.x, ui.pos.y + offset.y, 0)
+      P.init(pos.x + offset.x, pos.y + offset.y, 0)
     elif ui.anchor == {top}:
-      P.init(screenSize.x / 2 - ui.pos.x + offset.x - ui.layoutSize.x / 2, ui.pos.y + offset.y, 0)
+      P.init(screenSize.x / 2 - pos.x + offset.x - ui.layoutSize.x / 2, pos.y + offset.y, 0)
     elif ui.anchor == {top, right}:
-      P.init(screenSize.x - ui.pos.x + offset.x - ui.layoutSize.x, ui.pos.y + offset.y, 0)
+      P.init(screenSize.x - pos.x + offset.x - ui.layoutSize.x, pos.y + offset.y, 0)
     elif ui.anchor == {right}:
-      P.init(screenSize.x - ui.pos.x + offset.x - ui.layoutSize.x, screenSize.y / 2 - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+      P.init(screenSize.x - pos.x + offset.x - ui.layoutSize.x, screenSize.y / 2 - pos.y + offset.y - ui.layoutSize.y / 2, 0)
     elif ui.anchor == {bottom, right}:
-      P.init(screenSize.x - ui.pos.x + offset.x - ui.layoutSize.x, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y, 0)
+      P.init(screenSize.x - pos.x + offset.x - ui.layoutSize.x, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {bottom}:
-      P.init(screenSize.x / 2 - ui.pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+      P.init(screenSize.x / 2 - pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y - pos.y + offset.y - ui.layoutSize.y / 2, 0)
     elif ui.anchor == {bottom, left}:
-      P.init(ui.pos.x + offset.x, screenSize.y - ui.pos.y + offset.y - ui.layoutSize.y, 0)
+      P.init(pos.x + offset.x, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {left}:
-      P.init(ui.pos.x + offset.x, screenSize.y / 2 - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+      P.init(pos.x + offset.x, screenSize.y / 2 - pos.y + offset.y - ui.layoutSize.y / 2, 0)
     elif ui.anchor == {center}:
-      P.init(screenSize.x / 2 - ui.pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y / 2 - ui.pos.y + offset.y - ui.layoutSize.y / 2, 0)
+      P.init(screenSize.x / 2 - pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y / 2 - pos.y + offset.y - ui.layoutSize.y / 2, 0)
     elif ui.anchor == {}:
-      ui.pos + offset
+      pos + offset
     else:
       raise (ref AssertionDefect)(msg: "Invalid anchor: " & $ui.anchor)
 
-proc layout*[T: UiElements; Y: UiElement](ui: T, parent: Y, offset, screenSize: Vec3) =
+proc layout*[T: UiElements; Y: UiElement](ui: T, parent: Y, offset: Vec3, state: UiState) =
   mixin layout
   for field in ui.fields:
-    layout(field, parent, offset)
+    layout(field, parent, offset, state)
 
-proc layout*[T: UiElements](ui: T, offset, screenSize: Vec3) =
+proc layout*[T: UiElements](ui: T, offset: Vec3, state: UiState) =
   mixin layout
   for field in ui.fields:
-    layout(field, default(typeof(field)), offset, screenSize)
+    layout(field, default(typeof(field)), offset, state)
 
 proc onEnter(ui: Element, state: var UiState) = discard
 proc onClick(ui: Element, state: var UiState) = discard

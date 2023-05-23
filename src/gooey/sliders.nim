@@ -11,9 +11,9 @@ type
     onChange*: proc(a: T)
 
 
-proc layout*[Base, T](slider: HorizontalSliderBase[Base, T], parent: Base, offset, screenSize: Vec3) =
+proc layout*[Base, T](slider: HorizontalSliderBase[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
-  Base(slider).layout(parent, offset, screenSize)
+  Base(slider).layout(parent, offset, state)
 
 proc onEnter*[Base, T](slider: HorizontalSliderBase[Base, T], uiState: var UiState) = discard
 

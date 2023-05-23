@@ -26,6 +26,8 @@ type
     currentElement: Element
     input: UiInput
     inputPos: Vec2
+    scaling: float32
+    screenSize: Vec2
 
   RenderTarget = object
     renderer: Renderer
@@ -56,7 +58,6 @@ type
     uiState: UiState
     leftPressed: bool
     leftHeld: bool
-    screenSize: Vec2
 
 
 var
@@ -108,17 +109,18 @@ proc upload(element: Element, state: UiState, target: var RenderTarget) =
 
 proc upload(label: Label, state: UiState, target: var RenderTarget) =
   let orig = label.texture
-  label.texture = makeTexture(label.text, label.size, target.renderer)
-  if orig != nil and label.texture != orig:
-    refCount[orig] = max(refCount[orig] - 1, 0)
-    if refCount[orig] == 1:
-      refCount.del(orig)
-      for x, y in fontTextureCache:
-        if y == orig:
-          fontTextureCache.del(x)
-          break
-    refCount.inc(label.texture)
-    orig.destroyTexture()
+  if 0 notin [label.layoutSize.x, label.layoutSize.y]:
+    label.texture = makeTexture(label.text, label.layoutSize, target.renderer)
+    if orig != nil and label.texture != orig:
+      refCount[orig] = max(refCount[orig] - 1, 0)
+      if refCount[orig] == 1:
+        refCount.del(orig)
+        for x, y in fontTextureCache:
+          if y == orig:
+            fontTextureCache.del(x)
+            break
+      refCount.inc(label.texture)
+      orig.destroyTexture()
 
   Element(label).upload(state, target)
 
@@ -128,11 +130,11 @@ proc upload(button: Button, state: UiState, target: var RenderTarget) =
   if button.label != nil:
     button.label.upload(state, target)
 
-proc layout(button: Button, parent: Element, offset, screenSize: Vec3) =
-  buttons.layout(button, parent, offset, screenSize)
+proc layout(button: Button, parent: Element, offset: Vec3, state: UiState) =
+  buttons.layout(button, parent, offset, state)
   if button.label != nil:
     button.label.size = button.size
-    button.label.layout(button, (0f, 0f, 0f), screenSize)
+    button.label.layout(button, (0f, 0f, 0f), state)
 
 proc onEnter(button: Button, uiState: var UiState) =
   button.flags.incl {hovered}
@@ -155,12 +157,12 @@ proc upload[T](slider: Slider[T], state: UiState, target: var RenderTarget) =
 
   Element(slider.slideBar).upload(state, target)
 
-proc layout[T](slider: Slider[T], parent: Element, offset, screenSize: Vec3) =
-  sliders.layout(slider, parent, offset, screenSize)
+proc layout[T](slider: Slider[T], parent: Element, offset: Vec3, state: UiState) =
+  sliders.layout(slider, parent, offset, state)
   let slideSize = Vec2.init(slider.percentage * slider.layoutSize.x, slider.layoutSize.y)
   if slider.slideBar.isNil:
     slider.slideBar = Element(color: (255, 0, 0, 255))
-  slider.slideBar.layout(Element(slider), Vec3.init(0, 0, 0), screenSize)
+  slider.slideBar.layout(Element(slider), Vec3.init(0, 0, 0), state)
 
 proc onEnter(slider: Slider, uiState: var UiState) =
   slider.flags.incl {hovered}
@@ -174,8 +176,8 @@ proc onExit(slider: Slider, uiState: var UiState) = slider.flags.excl {hovered}
 proc interact[T](group: Groups[T], uiState: var UiState) =
   groups.interact(group, uiState)
 
-proc layout[T](group: Groups[T], parent: Element, offset, screenSize: Vec3) =
-  groups.layout(group, parent, offset, screenSize)
+proc layout[T](group: Groups[T], parent: Element, offset: Vec3, state: UiState) =
+  groups.layout(group, parent, offset, state)
 
 proc upload[T](group: Groups[T], state: UiState, target: var RenderTarget) =
   groups.upload(group, state, target)
@@ -198,7 +200,8 @@ proc inputLoop(app: App) =
     of WindowEvent:
       case e.window.event.WindowEventID
       of WindowEventSizeChanged, WindowEventResized:
-        app.screenSize = (float32 e.window.data1, float32 e.window.data2)
+        app.uiState.screenSize = (float32 e.window.data1, float32 e.window.data2)
+        app.uiState.scaling = 1
       else:
         discard
 
@@ -277,6 +280,7 @@ proc main() =
   var app = App()
   app.window = createWindow("gooey", WindowPosUndefined, WindowPosUndefined, 1280, 720, WindowResizable)
   app.renderer = app.window.createRenderer(-1, RendererAccelerated)
+  app.uiState.screenSize = (1280f, 720f)
   discard app.renderer.setRenderDrawBlendMode(BLENDMODE_NONE)
   app.isRunning = true
   let gui = makeGui(app)
@@ -294,7 +298,7 @@ proc main() =
       reset app.uiState.input
 
     gui.interact(app.uiState)
-    gui.layout(Vec3.init(0, 0, 0), Vec3.init(app.screenSize.x, app.screenSize.y, 0))
+    gui.layout(Vec3.init(0, 0, 0), app.uiState)
     gui.upload(app.uiState, target)
     app.renderer.renderPresent()
 

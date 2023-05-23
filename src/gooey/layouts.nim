@@ -24,12 +24,12 @@ proc usedSize*[Base, T](horz: Horz[Base, T]): Vec2 =
     result.x += size.x
     result.y = max(size.y, result.y)
 
-proc layout*[Base, T](horz: Horz[Base, T], parent: Base, offset, screenSize: Vec3) =
+proc layout*[Base, T](horz: Horz[Base, T], parent: Base, offset: Vec3, state: UiState) =
   horz.size = usedSize(horz)
-  Base(horz).layout(parent, offset, screenSize)
+  Base(horz).layout(parent, offset, state)
   var offset = typeof(offset).init(0, 0, 0)
   for child in horz.children:
-    child.layout(horz, offset, screenSize)
+    child.layout(horz, offset, state)
     offset.x += horz.margin + child.layoutSize.x
 
 proc usedSize*[Base, T](vert: Vert[Base, T]): Vec2 =
@@ -40,12 +40,12 @@ proc usedSize*[Base, T](vert: Vert[Base, T]): Vec2 =
     result.x = max(size.x, result.x)
     result.y += size.y
 
-proc layout*[Base, T](vert: Vert[Base, T], parent: Base, offset, screenSize: Vec3) =
+proc layout*[Base, T](vert: Vert[Base, T], parent: Base, offset: Vec3, state: UiState) =
   vert.size = usedSize(vert)
-  Base(vert).layout(parent, offset, screenSize)
+  Base(vert).layout(parent, offset, state)
   var offset = typeof(offset).init(0, 0, 0)
   for child in vert.children:
-    child.layout(vert, offset, screenSize)
+    child.layout(vert, offset, state)
     offset.y += vert.margin + child.layoutSize.y
 
 proc interact*[Base, T](horz: HorizontalLayoutBase[Base, T], state: var UiState) =
