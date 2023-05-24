@@ -105,16 +105,17 @@ proc makeTexture(s: string, size: Vec2, renderer: Renderer): Texture =
     tex
 
 proc upload(element: Element, state: UiState, target: var RenderTarget) =
-  let
-    rect = Rect(x: cint element.layoutPos.x, y: cint element.layoutPos.y, w: cint element.layoutSize.x, h: cint element.layoutSize.y)
-    col = element.color
+  if element.isVisible:
+    let
+      rect = Rect(x: cint element.layoutPos.x, y: cint element.layoutPos.y, w: cint element.layoutSize.x, h: cint element.layoutSize.y)
+      col = element.color
 
-  if element.texture.isNil:
-    discard target.renderer.setRenderDrawColor(col.r, col.g, col.b, col.a)
-    discard target.renderer.renderFillRect(addr rect)
-  else:
-    discard element.texture.setTextureColorMod(col.r, col.g, col.b)
-    discard target.renderer.renderCopy(element.texture, nil, addr rect)
+    if element.texture.isNil:
+      discard target.renderer.setRenderDrawColor(col.r, col.g, col.b, col.a)
+      discard target.renderer.renderFillRect(addr rect)
+    else:
+      discard element.texture.setTextureColorMod(col.r, col.g, col.b)
+      discard target.renderer.renderCopy(element.texture, nil, addr rect)
 
 proc upload(label: Label, state: UiState, target: var RenderTarget) =
   if 0 notin [label.layoutSize.x, label.layoutSize.y]:
@@ -274,17 +275,16 @@ proc makeGui(app: App): auto =
           clickCb: (proc() = echo x, " ", y)
         )
     grid.children.add horz
-  (
-    Button(
-      pos: Vec3.init(10, 10, 0),
-      anchor: {top, left},
-      size: Vec2.init(100, 50),
-      clickCb: proc() = echo("Hello"),
-      label: Label(text: "Hello", color: (0, 0, 0, 255))
-    ),
-    Label(text: "Hmmm", anchor: {bottom, right}, size: Vec2.init(300, 200)),
-    Label(color: (0, 255, 127, 255), text: "Huh", anchor: {bottom, right}, size: Vec2.init(100, 50)).named(myLabel),
-    Slider[float32](
+
+  let
+    myLabel = Label(
+      color: (0, 255, 127, 255),
+      text: "Huh",
+      anchor: {bottom, right},
+      size: Vec2.init(100, 50)
+    )
+
+    slider = Slider[float32](
       rng: 1f..5f,
       pos: (10, 10, 0),
       size: (100, 30),
@@ -294,7 +294,19 @@ proc makeGui(app: App): auto =
       onChange: proc(f: float32) =
         myLabel.size.y = f * 50
         myLabel.size.x = f * 100
+    )
+
+  (
+    Button(
+      pos: Vec3.init(10, 10, 0),
+      anchor: {top, left},
+      size: Vec2.init(100, 50),
+      clickCb: proc() = echo("Hello"),
+      label: Label(text: "Hello", color: (0, 0, 0, 255))
     ),
+    Label(text: "Hmmm", anchor: {bottom, right}, size: Vec2.init(300, 200)),
+    myLabel,
+    slider,
     HGroup[(Label, Button)](
       pos: (10, 10, 0),
       anchor: {top, right},
@@ -364,9 +376,10 @@ proc makeGui(app: App): auto =
     DropDown[Colors](
       pos: Vec3.init(0, 50, 0),
       margin: 5,
-      size: Vec2.init(75, 25),
+      size: Vec2.init(200, 50),
       anchor: {top},
-      onChange: proc(c: Colors) = echo c
+      onChange: (proc(c: Colors) = echo c),
+      visible: proc(): bool = slider.value > 3.3f
     ),
     grid
 

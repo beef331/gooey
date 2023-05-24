@@ -17,6 +17,7 @@ type
     pos*, layoutPos*: PosVec
     flags*: set[UiFlag]
     anchor*: set[AnchorDirection]
+    visible*: proc(): bool
 
   Element* = concept e
     e is UiElement[auto, auto]
@@ -69,9 +70,14 @@ template named*[S, P](ui: UiElement[S, P], name: untyped): untyped =
   let name = ui
   name
 
+
+proc isVisible*[S, P](ui: UiElement[S, P]): bool = ui.visible.isNil or ui.visible()
+proc isVisible*[T: Element](ui: T): bool = ui.visible.isNil or ui.visible()
+
 proc isOver[S, P](ui: UiElement[S, P], pos: Vec2): bool =
   pos.x in ui.layoutPos.x .. ui.layoutSize.x + ui.layoutPos.x and
-  pos.y in ui.layoutPos.y .. ui.layoutSize.y + ui.layoutPos.y
+  pos.y in ui.layoutPos.y .. ui.layoutSize.y + ui.layoutPos.y and
+  ui.isVisible()
 
 proc usedSize*[T: Element](ui: T): auto = ui.size
 
@@ -168,4 +174,5 @@ proc interact*[Ui: UiElements](ui: Ui, state: var UiState) =
 proc upload*[Ui: UiElements; T](ui: Ui, state: UiState, target: var T) =
   mixin upload
   for field in ui.fields:
-    upload(field, state, target)
+    if field.isVisible:
+      upload(field, state, target)
