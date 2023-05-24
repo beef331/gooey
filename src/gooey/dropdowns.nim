@@ -9,17 +9,6 @@ type
     margin*: float32
     opened*: bool
 
-proc setupCallbacks[Base, Button, T](dropDown: DropDownBase[Base, Button, T], old, newOne: T) =
-  dropDown.buttons[old].clickCb = proc() =
-    if dropDown.onChange != nil:
-      dropDown.onChange(old)
-    dropDown.setupCallbacks(dropDown.active, old)
-    dropDown.opened = false
-    dropDown.active = old
-  dropDown.buttons[newOne].clickCb = proc() =
-    dropDown.opened = not dropDown.opened
-
-
 proc layout*[Base, Button, T](
   dropDown: DropDownBase[Base, Button, T],
   parent: Base,
@@ -40,19 +29,13 @@ proc layout*[Base, Button, T](
       if ind != dropdown.active:
         btn.layout(dropDown, offset, state)
         offset.y += dropDown.margin + btn.layoutSize.y
-
-      if btn.clickCb.isNil:
-        if ind != dropDown.active:
-          capture ind, btn:
-            btn.clickCb = proc() =
-              if dropDown.onChange != nil:
-                dropDown.onChange(ind)
-              dropDown.setupCallbacks(dropDown.active, ind)
-              dropDown.opened = false
-              dropDown.active = ind
-        else:
+      if btn.clickCb == nil:
+        capture ind, btn:
           btn.clickCb = proc() =
+            if dropDown.onChange != nil and dropDown.active != ind:
+                dropDown.onChange(ind)
             dropDown.opened = not dropDown.opened
+            dropDown.active = ind
 
 
 proc interact*[Base, Button, T](
