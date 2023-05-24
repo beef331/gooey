@@ -1,6 +1,6 @@
 import sdl2_nim/sdl, gooey
 import pixie except Rect
-import gooey/[buttons, groups, layouts, sliders]
+import gooey/[buttons, groups, layouts, sliders, dropdowns]
 import std/tables
 
 type
@@ -52,6 +52,9 @@ type
   Layouts[T] = HLayout[T] or VLayout[T]
 
   Groups[T] = HGroup[T] or VGroup[T]
+
+  DropDown[T] = ref object of DropDownBase[Element, Button, T]
+
 
   FontProps = object
     size: Vec2
@@ -178,6 +181,23 @@ proc onDrag(slider: Slider, uiState: var UiState) = sliders.onDrag(slider, uiSta
 
 proc onExit(slider: Slider, uiState: var UiState) = slider.flags.excl {hovered}
 
+
+# DropDowns
+
+
+proc upload(dropDown: DropDown, state: UiState, target: var RenderTarget) =
+  dropdowns.upload(dropDown, state, target)
+
+proc layout(dropDown: DropDown, parent: Element, offset: Vec3, state: UiState) =
+  for ind, button in dropDown.buttons.mpairs:
+    if button.isNil:
+      button = Button(hoveredColor: (127, 127, 127, 255), size: dropDown.size, label: Label(text: $ind, color: (255, 0, 0, 255)))
+  dropdowns.layout(dropDown, parent, offset, state)
+
+proc interact(dropDown: DropDown, state: var UiState) =
+  dropdowns.interact(dropDown, state)
+
+
 # Groups
 
 proc interact[T](group: Groups[T], uiState: var UiState) =
@@ -218,6 +238,14 @@ proc inputLoop(app: App) =
         discard
 
     else: discard
+
+type Colors = enum
+  Red
+  Green
+  Blue
+  Yellow
+  Orange
+  Purple
 
 proc makeGui(app: App): auto =
   (
@@ -307,6 +335,14 @@ proc makeGui(app: App): auto =
       text: "Eh?!",
       size: (100, 50)
     ),
+    DropDown[Colors](
+      pos: Vec3.init(0, 50, 0),
+      margin: 5,
+      size: Vec2.init(75, 25),
+      anchor: {top},
+      onChange: proc(c: Colors) = echo c
+    )
+
   )
 
 proc main() =
