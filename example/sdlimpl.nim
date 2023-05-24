@@ -101,7 +101,7 @@ proc makeTexture(s: string, size: Vec2, renderer: Renderer): Texture =
     discard tex.setTextureBlendMode(BlendModeBlend)
     tex.unlockTexture()
     fontTextureCache[props] = tex
-    refCount[tex] = 1
+    refCount[tex] = 0
     tex
 
 proc upload(element: Element, state: UiState, target: var RenderTarget) =
@@ -123,7 +123,7 @@ proc upload(label: Label, state: UiState, target: var RenderTarget) =
     if label.texture != orig:
       if orig != nil:
         dec refCount[orig]
-        if refCount[orig] == 0:
+        if refCount[orig] <= 0:
           refCount.del(orig)
           for x, y in fontTextureCache:
             if y == orig:
