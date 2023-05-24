@@ -35,7 +35,7 @@ proc layout*[Base, T](horz: Horz[Base, T], parent: Base, offset: Vec3, state: Ui
       child.layout(horz, offset, state)
       offset.x += horz.margin * state.scaling + child.layoutSize.x
   else:
-    for child in horz.children.reversed:
+    for child in horz.children:
       child.layout(horz, offset, state)
       offset.x += horz.margin * state.scaling + child.layoutSize.x
 

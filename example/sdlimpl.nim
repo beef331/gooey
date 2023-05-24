@@ -1,7 +1,7 @@
 import sdl2_nim/sdl, gooey
 import pixie except Rect
 import gooey/[buttons, groups, layouts, sliders, dropdowns]
-import std/tables
+import std/[tables, sugar, strutils]
 
 type
   Vec2 = tuple[x, y: float32]
@@ -86,7 +86,7 @@ proc makeTexture(s: string, size: Vec2, renderer: Renderer): Texture =
     assert tex != nil
     font.size = size.y
     var layout = font.layoutBounds(s)
-    while layout.x > size.x or layout.y > size.y:
+    while layout.x >= size.x or layout.y >= size.y:
       font.size -= 1
       layout = font.layoutBounds(s)
 
@@ -184,7 +184,6 @@ proc onExit(slider: Slider, uiState: var UiState) = slider.flags.excl {hovered}
 
 # DropDowns
 
-
 proc upload(dropDown: DropDown, state: UiState, target: var RenderTarget) =
   dropdowns.upload(dropDown, state, target)
 
@@ -208,6 +207,19 @@ proc layout[T](group: Groups[T], parent: Element, offset: Vec3, state: UiState) 
 
 proc upload[T](group: Groups[T], state: UiState, target: var RenderTarget) =
   groups.upload(group, state, target)
+
+# Layouts
+
+proc interact[T](layout: Layouts[T], uiState: var UiState) =
+  layouts.interact(layout, uiState)
+
+proc layout[T](layout: Layouts[T], parent: Element, offset: Vec3, state: UiState) =
+  layouts.layout(layout, parent, offset, state)
+
+proc upload[T](layout: Layouts[T], state: UiState, target: var RenderTarget) =
+  layouts.upload(layout, state, target)
+
+# Usage
 
 proc inputLoop(app: App) =
   var e: Event
@@ -248,6 +260,20 @@ type Colors = enum
   Purple
 
 proc makeGui(app: App): auto =
+  let grid = VLayout[HLayout[Button]](pos: Vec3.init(100, 100, 0), anchor: {top, left}, margin: 10)
+  for y in 0..2:
+    let horz = HLayout[Button](margin: 10)
+    for x in 0..2:
+      capture x, y:
+        horz.children.add Button(
+          label: Label(
+            color: (0, 0, 0, 255),
+            text: "$#,$#" % [$x, $y]
+            ),
+          size: Vec2.init(40, 40),
+          clickCb: (proc() = echo x, " ", y)
+        )
+    grid.children.add horz
   (
     Button(
       pos: Vec3.init(10, 10, 0),
@@ -341,7 +367,8 @@ proc makeGui(app: App): auto =
       size: Vec2.init(75, 25),
       anchor: {top},
       onChange: proc(c: Colors) = echo c
-    )
+    ),
+    grid
 
   )
 
