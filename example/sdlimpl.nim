@@ -188,9 +188,9 @@ proc onExit(slider: Slider, uiState: var UiState) = slider.flags.excl {hovered}
 proc upload(dropDown: DropDown, state: UiState, target: var RenderTarget) =
   dropdowns.upload(dropDown, state, target)
 
-proc layout(dropDown: DropDown, parent: Element, offset: Vec3, state: UiState) =
-  for ind, button in dropDown.buttons.mpairs:
-    if button.isNil:
+proc layout[T](dropDown: DropDown[T], parent: Element, offset: Vec3, state: UiState) =
+  if dropDown.buttons[T.low].isNil:
+    for ind, button in dropDown.buttons.mpairs:
       button = Button(hoveredColor: (127, 127, 127, 255), size: dropDown.size, label: Label(text: $ind, color: (255, 0, 0, 255)))
   dropdowns.layout(dropDown, parent, offset, state)
 
