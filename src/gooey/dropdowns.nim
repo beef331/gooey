@@ -43,11 +43,12 @@ proc interact*[Base, Button, T](
   state: var UiState,
 ) =
   mixin interact
-  if dropDown.opened:
-    for btn in dropDown.buttons:
-      btn.interact(state)
-  else:
-    dropDown.buttons[dropDown.active].interact(state)
+  if dropDown.isVisible:
+    if dropDown.opened:
+      for btn in dropDown.buttons:
+        btn.interact(state)
+    else:
+      dropDown.buttons[dropDown.active].interact(state)
 
 proc upload*[Base, Button, T](
   dropDown: DropDownBase[Base, Button, T],
@@ -55,9 +56,10 @@ proc upload*[Base, Button, T](
   target: var auto
 ) =
   mixin upload
-  if dropDown.opened:
-    for button in dropDown.buttons:
-      if button != nil:
-        button.upload(state, target)
-  else:
-    dropDown.buttons[dropDown.active].upload(state, target)
+  if dropDown.isVisible:
+    if dropDown.opened:
+      for button in dropDown.buttons:
+        if button != nil:
+          button.upload(state, target)
+    else:
+      dropDown.buttons[dropDown.active].upload(state, target)
