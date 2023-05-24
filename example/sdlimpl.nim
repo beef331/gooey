@@ -86,7 +86,7 @@ proc makeTexture(s: string, size: Vec2, renderer: Renderer): Texture =
     assert tex != nil
     font.size = size.y
     var layout = font.layoutBounds(s)
-    while layout.x >= size.x or layout.y >= size.y:
+    while layout.x + 1 >= size.x or layout.y + 1 >= size.y:
       font.size -= 1
       layout = font.layoutBounds(s)
 
