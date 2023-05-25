@@ -218,7 +218,6 @@ proc layout[T](layout: Layouts[T], parent: Element, offset: Vec3, state: UiState
   layouts.layout(layout, parent, offset, state)
 
 proc upload[T](layout: Layouts[T], state: UiState, target: var RenderTarget) =
-  Element(layout).upload(state, target)
   layouts.upload(layout, state, target)
 
 # Usage
@@ -262,9 +261,9 @@ type Colors = enum
   Purple
 
 proc makeGui(app: App): auto =
-  let grid = VLayout[HLayout[Button]](pos: Vec3.init(100, 100, 0), anchor: {top, left}, margin: 3)
+  let grid = VLayout[HLayout[Button]](pos: Vec3.init(100, 100, 0), anchor: {top, left}, margin: 5)
   for y in 0..2:
-    let horz = HLayout[Button](margin: 3)
+    let horz = HLayout[Button](margin: 5)
     for x in 0..2:
       capture x, y:
         horz.children.add Button(
