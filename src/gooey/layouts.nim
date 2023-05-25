@@ -20,11 +20,15 @@ type
 proc usedSize*[Base, T](horz: Horz[Base, T]): Vec2 =
   mixin usedSize
   result = typeof(horz.size).init(0, 0)
-  for child in horz.children:
-    if child.isVisible:
+  var added = false
+  for i, child in horz.children:
+    if child.isVisible():
+      added = true
       let size = child.usedSize()
       result.x += size.x + horz.margin
       result.y = max(size.y, result.y)
+  if added:
+    result.x -= horz.margin
 
 proc layout*[Base, T](horz: Horz[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
@@ -38,18 +42,21 @@ proc layout*[Base, T](horz: Horz[Base, T], parent: Base, offset: Vec3, state: Ui
         offset.x += horz.margin * state.scaling + child.layoutSize.x
   else:
     for child in horz.children:
-      if child.isVisible:
+      if child.isVisible():
         child.layout(horz, offset, state)
         offset.x += horz.margin * state.scaling + child.layoutSize.x
 
 proc usedSize*[Base, T](vert: Vert[Base, T]): Vec2 =
   mixin usedSize
   result = typeof(vert.size).init(0, 0f)
+  var added = false
   for child in vert.children:
     if child.isVisible():
+      added = true
       let size = child.usedSize()
       result.x = max(size.x, result.x)
       result.y += size.y + vert.margin
+  result.y -= vert.margin
 
 proc layout*[Base, T](vert: Vert[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
