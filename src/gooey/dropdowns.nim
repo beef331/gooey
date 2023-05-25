@@ -48,7 +48,8 @@ proc interact*[Base, Button, T](
       for btn in dropDown.buttons:
         btn.interact(state)
     else:
-      dropDown.buttons[dropDown.active].interact(state)
+      if dropDown.buttons[dropDown.active] != nil:
+        dropDown.buttons[dropDown.active].interact(state)
 
 proc upload*[Base, Button, T](
   dropDown: DropDownBase[Base, Button, T],
@@ -62,4 +63,5 @@ proc upload*[Base, Button, T](
         if button != nil:
           button.upload(state, target)
     else:
-      dropDown.buttons[dropDown.active].upload(state, target)
+      if dropDown.buttons[dropDown.active] != nil:
+        dropDown.buttons[dropDown.active].upload(state, target)
