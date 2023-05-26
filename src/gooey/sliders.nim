@@ -14,12 +14,12 @@ type
 proc layout*[Base, T](slider: HorizontalSliderBase[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
   Base(slider).layout(parent, offset, state)
-
-proc interact*[Base, T](slider: HorizontalSliderBase[Base, T], state: var UiState) =
-  mixin reverselerp
   if slider.watchValue != nil:
     slider.value = slider.watchValue()
   slider.percentage = slider.value.reverseLerp(slider.rng)
+
+proc interact*[Base, T](slider: HorizontalSliderBase[Base, T], state: var UiState) =
+  mixin reverselerp
   gooey.interact(slider, state)
 
 
