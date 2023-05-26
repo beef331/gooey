@@ -169,7 +169,8 @@ proc interact*[T: Element](ui: T, state: var UiState) =
 proc interact*[Ui: UiElements](ui: Ui, state: var UiState) =
   mixin interact
   for field in ui.fields:
-    interact(field, state)
+    if field.isVisible:
+      interact(field, state)
 
 proc upload*[Ui: UiElements; T](ui: Ui, state: UiState, target: var T) =
   mixin upload

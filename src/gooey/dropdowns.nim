@@ -6,6 +6,7 @@ type
     buttons*: array[T, Button]
     active*: T
     onChange*: proc(val: T)
+    watchValue*: proc(): T
     margin*: float32
     opened*: bool
 
@@ -43,6 +44,9 @@ proc interact*[Base, Button, T](
   state: var UiState,
 ) =
   mixin interact
+  if dropDown.watchValue != nil:
+    dropDown.active = dropDown.watchValue()
+
   if dropDown.isVisible:
     if dropDown.opened:
       for btn in dropDown.buttons:

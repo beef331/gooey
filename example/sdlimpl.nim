@@ -15,6 +15,8 @@ proc init(_: typedesc[Vec3], x, y, z: float32): Vec3 = (x, y, z)
 proc `+`(a, b: Vec2): Vec2 = (a.x + b.x, a.y + b.y)
 proc `+`(a, b: Vec3): Vec3 = (a.x + b.x, a.y + b.y, a.z + b.z)
 
+proc reverseLerp(a: float32, slice: Slice[float32]): float32 = clamp((a - slice.a) / (slice.a - slice.b), 0, 1)
+
 type
   Color = tuple[r,g,b,a: uint8]
   Element = ref object of UiElement[Vec2, Vec3]
