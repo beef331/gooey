@@ -32,6 +32,8 @@ type
   UiInputKind* = enum
     nothing
     textInput
+    textDelete
+    textNewLine
     leftClick
     rightClick
 
@@ -40,7 +42,7 @@ type
     case kind*: UiInputKind
     of textInput:
       str*: string
-    of leftClick, rightClick, nothing:
+    of leftClick, rightClick, nothing, textDelete, textNewLine:
       discard
 
   UiState* {.explain.} = concept s
@@ -61,6 +63,8 @@ proc onlyUiElems*(t: typedesc[tuple]): bool =
       when field isnot UiElement[auto, auto]:
         return false
   true
+
+const TextEditFields* = {textInput..textNewline}
 
 type UiElements* = concept type Ui
   onlyUiElems(Ui)
@@ -146,7 +150,7 @@ macro requiresConvToElement(code: typed): untyped =
 
 
 proc interact*[T: Element](ui: T, state: var UiState) =
-  mixin onClick, onEnter, onHover, onExit, interact, onDrag
+  mixin onClick, onEnter, onHover, onExit, interact, onDrag, onTextInput
   type Base = UiElement[typeof(ui.size), typeof(ui.pos)]
   if state.action == nothing:
     if isOver(Base ui, state.inputPos):
@@ -162,8 +166,10 @@ proc interact*[T: Element](ui: T, state: var UiState) =
           discard requiresConvToElement onClick(ui, state)
           reset state.input  # Consume it
       discard requiresConvToElement onHover(ui, state)
-      if state.input.kind == textInput:
+
+      if state.input.kind in TextEditFields:
         discard requiresConvToElement onTextInput(ui, state)
+
     else:
       discard requiresConvToElement onExit(ui, state)
       state.action = nothing

@@ -1,6 +1,6 @@
 import sdl2_nim/sdl, gooey
 import pixie except Rect
-import gooey/[buttons, groups, layouts, sliders, dropdowns]
+import gooey/[buttons, groups, layouts, sliders, dropdowns, textinputs]
 import std/[tables, sugar, strutils]
 
 type
@@ -57,6 +57,9 @@ type
 
   DropDown[T] = ref object of DropDownBase[Element, Button, T]
 
+  TextInput = ref object of TextInputBase[Element]
+    internalLabel*: Label
+
 
   FontProps = object
     size: Vec2
@@ -69,6 +72,10 @@ type
     uiState: UiState
     leftPressed: bool
     leftHeld: bool
+    backSpacePressed: bool
+    returnPressed: bool
+
+    textInput: string
 
 
 var
@@ -223,6 +230,28 @@ proc layout[T](layout: Layouts[T], parent: Element, offset: Vec3, state: UiState
 proc upload[T](layout: Layouts[T], state: UiState, target: var RenderTarget) =
   layouts.upload(layout, state, target)
 
+# TextInput
+
+proc upload(input: TextInput, state: UiState, target: var RenderTarget) =
+  input.internalLabel.upload(state, target)
+
+proc layout(input: TextInput, parent: Element, offset: Vec3, state: UiState) =
+  textinputs.layout(input, parent, offset, state)
+  if input.internalLabel.isNil:
+    input.internalLabel = Label(size: input.size)
+  input.internalLabel.text = input.text
+  input.internalLabel.layout(input, Vec3.init(0, 0, 0), state)
+
+proc onEnter(input: TextInput, uiState: var UiState) =
+  startTextInput()
+
+proc onTextInput(input: TextInput, uiState: var UiState) =
+  textinputs.onTextInput(input, uiState)
+
+proc onExit(input: TextInput, uiState: var UiState) =
+  stopTextInput()
+
+
 # Usage
 
 proc inputLoop(app: App) =
@@ -249,9 +278,19 @@ proc inputLoop(app: App) =
         app.uiState.screenSize = (x, y)
         app.window.setWindowSize(cint x, cint y)
         app.uiState.scaling = x / 1280
-
       else:
         discard
+
+    of TextInput:
+      app.textInput =  $e.text.text
+    of Keydown:
+      let key = e.key.keysym.sym
+      case key
+      of KReturn:
+        app.returnPressed = true
+      of KBackSpace:
+        app.backSpacePressed = true
+      else: discard
 
     else: discard
 
@@ -384,7 +423,8 @@ proc makeGui(app: App): auto =
       onChange: (proc(c: Colors) = echo c),
       visible: proc(): bool = slider.value > 3.3f
     ),
-    grid
+    grid,
+    TextInput(text: "hello", size: Vec2.init(300, 100), pos: Vec3.init(0, 250, 0), anchor: {bottom}),
 
   )
 
@@ -402,11 +442,21 @@ proc main() =
   while app.isRunning:
     discard app.renderer.setRenderDrawColor(0, 0, 0, 255)
     discard app.renderer.renderClear()
+    app.textInput = ""
+    app.backSpacePressed = false
+    app.returnPressed = false
     app.inputLoop()
+    let isTextEditing = isTextInputActive()
     if app.leftPressed:
       app.uiState.input = UiInput(kind: leftClick)
     elif app.leftHeld:
       app.uiState.input = UiInput(kind: leftClick, isHeld: true)
+    elif isTextEditing and app.textInput != "":
+      app.uiState.input = UiInput(kind: textInput, str: app.textInput)
+    elif isTextEditing and app.backSpacePressed:
+      app.uiState.input = UiInput(kind: textDelete)
+    elif isTextEditing and app.returnPressed:
+      app.uiState.input = UiInput(kind: textNewLine)
     else:
       reset app.uiState.input
 
