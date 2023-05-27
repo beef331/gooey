@@ -14,13 +14,17 @@ proc layout*[Base](input: TextInputBase[Base], parent: Base, offset: Vec3, state
 proc onTextInput*[Base](input: TextInputBase[Base], uiState: var UiState) =
   case uiState.input.kind
   of textInput:
-    if uiState.input.str != input.text:
-      input.text &= uiState.input.str
-      if input.onChange != nil:
-        input.onChange(input.text)
+    input.text &= uiState.input.str
   of textDelete:
     input.text.setLen(max(input.text.high, 0))
+
   of textNewLine:
     input.text.add '\n'
 
+  else: discard
+
+  case uiState.input.kind
+  of TextEditFields:
+    if input.onChange != nil:
+      input.onChange(input.text)
   else: discard
