@@ -17,11 +17,15 @@ type
 proc usedSize*[Base, T](horz: HorizontalGroupBase[Base, T]): Vec2 =
   mixin usedSize
   result = typeof(horz.size).init(0f, 0f)
+  var hasElement = false
   for field in horz.entries.fields:
     if field.isVisible:
       let size = usedSize(field)
       result.x += size.x + horz.margin
       result.y = max(size.y, result.y)
+      hasElement = true
+  if hasElement:
+    result.x -= horz.margin
 
 proc layout*[Base, T](horz: HorizontalGroupBase[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
@@ -43,11 +47,16 @@ proc layout*[Base, T](horz: HorizontalGroupBase[Base, T], parent: Base, offset: 
 proc usedSize*[Base, T](vert: VerticalGroupBase[Base, T]): Vec2 =
   mixin usedSize
   result = typeof(vert.size).init(0f, 0f)
-  result.y = (tupleLen(T) - 1) * vert.margin
+  var hasElement = false
   for field in vert.entries.fields:
-    let size = usedSize(field)
-    result.x = max(size.x, result.x)
-    result.y += size.y + vert.margin
+    if field.isVisible:
+      let size = usedSize(field)
+      result.x = max(size.x, result.x)
+      result.y += size.y + vert.margin
+      hasElement = true
+  if hasElement:
+    result.y -= vert.margin
+
 
 proc layout*[Base, T](vert: VerticalGroupBase[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
