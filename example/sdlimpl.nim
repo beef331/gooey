@@ -30,6 +30,7 @@ type
     inputPos: Vec2
     scaling: float32
     screenSize: Vec2
+    interactedWithCurrentElement: bool
 
   RenderTarget = object
     renderer: Renderer
@@ -459,7 +460,7 @@ proc main() =
       app.uiState.input = UiInput(kind: textNewLine)
     else:
       reset app.uiState.input
-
+    app.uiState.interactedWithCurrentElement = false
     gui.interact(app.uiState)
     gui.layout(Vec3.init(0, 0, 0), app.uiState)
     gui.upload(app.uiState, target)

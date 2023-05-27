@@ -52,6 +52,7 @@ type
     s.inputPos is Vec2
     s.screenSize is Vec2
     s.scaling is float32
+    s.interactedWithCurrentElement is bool
 
 proc onlyUiElems*(t: typedesc[tuple]): bool =
   var val: t
@@ -157,8 +158,10 @@ proc interact*[T: Element](ui: T, state: var UiState) =
       if not requiresConvToElement onEnter(ui, state):
         state.action = overElement
         state.currentElement = ui
+        state.interactedWithCurrentElement = true
   if state.currentElement == typeof(state.currentElement)(ui):
     if isOver(Base ui, state.inputPos):
+      state.interactedWithCurrentElement = true
       if state.input.kind == leftClick:
         if state.input.isHeld:
           discard requiresConvToElement onDrag(ui, state)
