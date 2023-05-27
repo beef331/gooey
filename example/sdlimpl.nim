@@ -15,7 +15,7 @@ proc init(_: typedesc[Vec3], x, y, z: float32): Vec3 = (x, y, z)
 proc `+`(a, b: Vec2): Vec2 = (a.x + b.x, a.y + b.y)
 proc `+`(a, b: Vec3): Vec3 = (a.x + b.x, a.y + b.y, a.z + b.z)
 
-proc reverseLerp(a: float32, slice: Slice[float32]): float32 = clamp((a - slice.a) / (slice.a - slice.b), 0, 1)
+proc reverseLerp(a: float32, slice: Slice[float32]): float32 = clamp(abs(a - slice.a) / abs(slice.b - slice.a), 0, 1)
 
 type
   Color = tuple[r,g,b,a: uint8]
@@ -180,7 +180,8 @@ proc layout[T](slider: Slider[T], parent: Element, offset: Vec3, state: UiState)
 proc onEnter(slider: Slider, uiState: var UiState) =
   slider.flags.incl {hovered}
 
-proc onDrag(slider: Slider, uiState: var UiState) = sliders.onDrag(slider, uiState)
+proc onDrag(slider: Slider, uiState: var UiState) =
+  sliders.onDrag(slider, uiState)
 
 proc onExit(slider: Slider, uiState: var UiState) = slider.flags.excl {hovered}
 

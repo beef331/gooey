@@ -134,6 +134,7 @@ proc onClick(ui: Element, state: var UiState) = discard
 proc onHover(ui: Element, state: var UiState) = discard
 proc onExit(ui: Element, state: var UiState) = discard
 proc onDrag(ui: Element, state: var UiState) = discard
+proc onTextInput(ui: Element, state: var UiState) = discard
 
 import std/macros
 
@@ -161,6 +162,8 @@ proc interact*[T: Element](ui: T, state: var UiState) =
           discard requiresConvToElement onClick(ui, state)
           reset state.input  # Consume it
       discard requiresConvToElement onHover(ui, state)
+      if state.input.kind == textInput:
+        discard requiresConvToElement onTextInput(ui, state)
     else:
       discard requiresConvToElement onExit(ui, state)
       state.action = nothing

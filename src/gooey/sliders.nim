@@ -22,8 +22,6 @@ proc interact*[Base, T](slider: HorizontalSliderBase[Base, T], state: var UiStat
   mixin reverselerp
   gooey.interact(slider, state)
 
-
-
 proc onEnter*[Base, T](slider: HorizontalSliderBase[Base, T], uiState: var UiState) = discard
 
 proc onDrag*[Base, T](slider: HorizontalSliderBase[Base, T], uiState: var UiState) =
