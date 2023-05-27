@@ -104,7 +104,7 @@ proc layout*[S, P](ui: UiElement[S, P], parent: UiElement[S, P], offset: P,  uiS
     if ui.anchor == {top, left}:
       P.init(pos.x + offset.x, pos.y + offset.y, 0)
     elif ui.anchor == {top}:
-      P.init(screenSize.x / 2 - pos.x + offset.x - ui.layoutSize.x / 2, pos.y + offset.y, 0)
+      P.init(screenSize.x / 2 + pos.x + offset.x - ui.layoutSize.x / 2, pos.y + offset.y, 0)
     elif ui.anchor == {top, right}:
       P.init(screenSize.x - pos.x + offset.x - ui.layoutSize.x, pos.y + offset.y, 0)
     elif ui.anchor == {right}:
@@ -112,7 +112,7 @@ proc layout*[S, P](ui: UiElement[S, P], parent: UiElement[S, P], offset: P,  uiS
     elif ui.anchor == {bottom, right}:
       P.init(screenSize.x - pos.x + offset.x - ui.layoutSize.x, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {bottom}:
-      P.init(screenSize.x / 2 - pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
+      P.init(screenSize.x / 2 + pos.x + offset.x - ui.layoutSize.x / 2, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {bottom, left}:
       P.init(pos.x + offset.x, screenSize.y - pos.y + offset.y - ui.layoutSize.y, 0)
     elif ui.anchor == {left}:

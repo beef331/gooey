@@ -7,10 +7,14 @@ type
     margin*: float32
     rightToLeft*: bool
 
+  HorizontalAlignment* = enum
+    Left, Right, Center
+
   VerticalGroupBase*[Base, T] = ref object of Base
     entries*: T
     margin*: float32
     bottomToTop*: bool
+    alignment*: HorizontalAlignment
 
   Group[Base, T] = VerticalGroupBase[Base, T] or HorizontalGroupBase[Base, T]
 
@@ -67,11 +71,28 @@ proc layout*[Base, T](vert: VerticalGroupBase[Base, T], parent: Base, offset: Ve
     if vert.bottomToTop:
       applyItBackwards(vert.entries):
         if it.isVisible:
+          var localOffset = offset
+          let size = it.usedSize
+          case vert.alignment:
+          of Center:
+            it.pos.x = (vert.size.x - size.x) / 2
+          of Right:
+            it.pos.x = (vert.size.x - size.x)
+          else: discard
+
           it.layout(Base(vert), offset, state)
           offset.y += vert.margin * state.scaling + it.layoutSize.y
     else:
       for field in vert.entries.fields:
         if field.isVisible:
+          let size = field.usedSize
+          case vert.alignment:
+          of Center:
+            field.pos.x = (vert.size.x - size.x) / 2
+          of Right:
+            field.pos.x = (vert.size.x - size.x)
+          else: discard
+
           field.layout(Base(vert), offset, state)
           offset.y += vert.margin * state.scaling + field.layoutSize.y
 
