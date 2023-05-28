@@ -153,9 +153,11 @@ macro requiresConvToElement(code: typed): untyped =
 proc interact*[T: Element](ui: T, state: var UiState) =
   mixin onClick, onEnter, onHover, onExit, interact, onDrag, onTextInput
   type Base = UiElement[typeof(ui.size), typeof(ui.pos)]
-  if state.action == nothing:
+  if state.action == nothing or (state.action == overElement and not state.interactedWithCurrentElement):
     if isOver(Base ui, state.inputPos):
       if not requiresConvToElement onEnter(ui, state):
+        if state.action == overElement:
+          reset state.currentElement.flags
         state.action = overElement
         state.currentElement = ui
         state.interactedWithCurrentElement = true
