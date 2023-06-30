@@ -31,6 +31,7 @@ type
     scaling: float32
     screenSize: Vec2
     interactedWithCurrentElement: bool
+    overAnyUi: bool
 
   RenderTarget = object
     renderer: Renderer
@@ -147,7 +148,11 @@ proc upload(label: Label, state: UiState, target: var RenderTarget) =
 
 # Button
 proc upload(button: Button, state: UiState, target: var RenderTarget) =
+  let col = button.color
+  if hovered in button.flags:
+    button.color = button.hoveredColor
   Element(button).upload(state, target)
+  button.color = col
   if button.label != nil:
     button.label.upload(state, target)
 
@@ -158,12 +163,10 @@ proc layout(button: Button, parent: Element, offset: Vec3, state: UiState) =
     button.label.layout(button, (0f, 0f, 0f), state)
 
 proc onEnter(button: Button, uiState: var UiState) =
-  button.flags.incl {hovered}
-  button.baseColor = button.color
-  button.color = button.hoveredColor
+  button.flags.incl hovered
 
 proc onExit(button: Button, uiState: var UiState) =
-  button.color = button.baseColor
+  button.flags.excl hovered
 
 proc onClick(button: Button, uiState: var UiState) = buttons.onClick(button, uiState)
 
@@ -461,7 +464,13 @@ proc main() =
     else:
       reset app.uiState.input
     app.uiState.interactedWithCurrentElement = false
+    app.uiState.overAnyUi = false
     gui.interact(app.uiState)
+    gui[2].text =
+      if app.uiState.overAnyUi:
+        "Over some GUI"
+      else:
+        "Over nothing"
     gui.layout(Vec3.init(0, 0, 0), app.uiState)
     gui.upload(app.uiState, target)
     app.renderer.renderPresent()

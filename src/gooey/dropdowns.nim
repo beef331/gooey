@@ -10,6 +10,13 @@ type
     margin*: float32
     opened*: bool
 
+proc isOver*[Base, Button, T](dropDown: DropDownBase[Base, Button, T], pos: Vec2): bool =
+  if dropDown.isVisible:
+    for btn in dropDown.buttons:
+      if btn.isOver(pos):
+        return true
+
+
 proc layout*[Base, Button, T](
   dropDown: DropDownBase[Base, Button, T],
   parent: Base,

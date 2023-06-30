@@ -53,6 +53,7 @@ type
     s.screenSize is Vec2
     s.scaling is float32
     s.interactedWithCurrentElement is bool
+    s.overAnyUi is bool # This is used for blocking input when over gui that do not interact
 
 proc onlyUiElems*(t: typedesc[tuple]): bool =
   var val: t
@@ -79,7 +80,7 @@ template named*[S, P](ui: UiElement[S, P], name: untyped): untyped =
 proc isVisible*[S, P](ui: UiElement[S, P]): bool = ui.visible.isNil or ui.visible()
 proc isVisible*[T: Element](ui: T): bool = ui.visible.isNil or ui.visible()
 
-proc isOver[S, P](ui: UiElement[S, P], pos: Vec2): bool =
+proc isOver*[S, P](ui: UiElement[S, P], pos: Vec2): bool =
   pos.x in ui.layoutPos.x .. ui.layoutSize.x + ui.layoutPos.x and
   pos.y in ui.layoutPos.y .. ui.layoutSize.y + ui.layoutPos.y and
   ui.isVisible()
@@ -151,9 +152,10 @@ macro requiresConvToElement(code: typed): untyped =
 
 
 proc interact*[T: Element](ui: T, state: var UiState) =
-  mixin onClick, onEnter, onHover, onExit, interact, onDrag, onTextInput
+  mixin onClick, onEnter, onHover, onExit, interact, onDrag, onTextInput, isOver
   type Base = UiElement[typeof(ui.size), typeof(ui.pos)]
-  if state.action == nothing or (state.action == overElement and not state.interactedWithCurrentElement):
+  if state.action == nothing or 
+    (state.action == overElement and not state.interactedWithCurrentElement and state.currentElement != typeof(state.currentElement)(ui)):
     if isOver(Base ui, state.inputPos):
       if not requiresConvToElement onEnter(ui, state):
         if state.action == overElement:
@@ -181,10 +183,15 @@ proc interact*[T: Element](ui: T, state: var UiState) =
       state.currentElement = nil
 
 proc interact*[Ui: UiElements](ui: Ui, state: var UiState) =
-  mixin interact
+  mixin interact, isOver
   for field in ui.fields:
     if field.isVisible:
       interact(field, state)
+    when compiles(field.isOver(state.inputPos)):
+      state.overAnyUi = state.overAnyUi or field.isOver(state.inputPos)
+    else:
+      type Base = UiElement[typeof(field.size), typeof(field.pos)]
+      state.overAnyUi = state.overAnyUi or Base(field).isOver(state.inputPos)
 
 proc upload*[Ui: UiElements; T](ui: Ui, state: UiState, target: var T) =
   mixin upload
