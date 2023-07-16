@@ -153,7 +153,7 @@ macro requiresConvToElement(code: typed): untyped =
 
 proc interact*[T: Element](ui: T, state: var UiState) =
   mixin onClick, onEnter, onHover, onExit, interact, onDrag, onTextInput, isOver
-  type Base = UiElement[typeof(ui.size), typeof(ui.pos)]
+  type Base {.used.} = UiElement[typeof(ui.size), typeof(ui.pos)]
   if state.action == nothing or 
     (state.action == overElement and not state.interactedWithCurrentElement and state.currentElement != typeof(state.currentElement)(ui)):
     if isOver(Base ui, state.inputPos):
@@ -184,6 +184,7 @@ proc interact*[T: Element](ui: T, state: var UiState) =
 
 proc interact*[Ui: UiElements](ui: Ui, state: var UiState) =
   mixin interact, isOver
+  {.push hint[ConvFromXToItselfNotNeeded]: off}
   for field in ui.fields:
     if field.isVisible:
       interact(field, state)
@@ -192,6 +193,7 @@ proc interact*[Ui: UiElements](ui: Ui, state: var UiState) =
     else:
       type Base = UiElement[typeof(field.size), typeof(field.pos)]
       state.overAnyUi = state.overAnyUi or Base(field).isOver(state.inputPos)
+  {.pop.}
 
 proc upload*[Ui: UiElements; T](ui: Ui, state: UiState, target: var T) =
   mixin upload

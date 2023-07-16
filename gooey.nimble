@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.1"
+version       = "0.1.2"
 author        = "Jason Beetham"
 description   = "It's ooey and gooey it's a GUIish thing"
 license       = "MIT"

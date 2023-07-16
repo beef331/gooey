@@ -33,6 +33,7 @@ proc usedSize*[Base, T](horz: HorizontalGroupBase[Base, T]): Vec2 =
 
 proc layout*[Base, T](horz: HorizontalGroupBase[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
+  {.push hint[ConvFromXToItselfNotNeeded]: off}
   if horz.isVisible:
     horz.size = usedSize(horz)
     Base(horz).layout(Base parent, offset, state)
@@ -47,7 +48,8 @@ proc layout*[Base, T](horz: HorizontalGroupBase[Base, T], parent: Base, offset: 
         if field.isVisible:
           field.layout(Base(horz), offset, state)
           offset.x += horz.margin * state.scaling + field.layoutSize.x
-
+  {.pop.}
+  
 proc usedSize*[Base, T](vert: VerticalGroupBase[Base, T]): Vec2 =
   mixin usedSize
   result = typeof(vert.size).init(0f, 0f)
@@ -64,6 +66,7 @@ proc usedSize*[Base, T](vert: VerticalGroupBase[Base, T]): Vec2 =
 
 proc layout*[Base, T](vert: VerticalGroupBase[Base, T], parent: Base, offset: Vec3, state: UiState) =
   mixin layout
+  {.push hint[ConvFromXToItselfNotNeeded]: off}
   if vert.isVisible:
     vert.size = usedSize(vert)
     Base(vert).layout(Base parent, offset, state)
@@ -71,7 +74,6 @@ proc layout*[Base, T](vert: VerticalGroupBase[Base, T], parent: Base, offset: Ve
     if vert.bottomToTop:
       applyItBackwards(vert.entries):
         if it.isVisible:
-          var localOffset = offset
           let size = it.usedSize
           case vert.alignment:
           of Center:
@@ -95,6 +97,7 @@ proc layout*[Base, T](vert: VerticalGroupBase[Base, T], parent: Base, offset: Ve
 
           field.layout(Base(vert), offset, state)
           offset.y += vert.margin * state.scaling + field.layoutSize.y
+  {.pop.}
 
 proc interact*[Base, T](group: Group[Base, T], state: var UiState) =
   mixin interact
