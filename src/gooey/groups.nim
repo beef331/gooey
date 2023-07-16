@@ -1,6 +1,8 @@
 import gooey, mathtypes, iteratorstuff
 import std/typetraits
 
+const bleh {.used.} = default typeof(distinctBase(int))
+
 type
   HorizontalGroupBase*[Base, T] = ref object of Base
     entries*: T

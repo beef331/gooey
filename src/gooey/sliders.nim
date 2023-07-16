@@ -1,7 +1,7 @@
 import gooey, mathtypes
 
 type
-  Slideable = concept s, type S
+  Slideable {.used.} = concept s, type S
     lerp(s, s, float32) is S
 
   HorizontalSliderBase*[Base, T] = ref object of Base

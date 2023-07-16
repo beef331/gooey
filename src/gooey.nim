@@ -191,7 +191,7 @@ proc interact*[Ui: UiElements](ui: Ui, state: var UiState) =
     when compiles(field.isOver(state.inputPos)):
       state.overAnyUi = state.overAnyUi or field.isOver(state.inputPos)
     else:
-      type Base = UiElement[typeof(field.size), typeof(field.pos)]
+      type Base{.used.} = UiElement[typeof(field.size), typeof(field.pos)]
       state.overAnyUi = state.overAnyUi or Base(field).isOver(state.inputPos)
   {.pop.}
 
